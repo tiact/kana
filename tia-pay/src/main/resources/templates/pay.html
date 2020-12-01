@@ -1,0 +1,170 @@
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>沙箱支付</title>
+</head>
+<body>
+<p>支付宝：条码支付</p>
+<div>
+    <label>消费金额</label>
+    <input type="number" id="price" value="10">
+    <label>支付宝付款码</label><input type="text" id="payCode"  onkeydown="pay()">
+    <div>
+        支付状态：<label id="notice" style="color: red"></label>
+    </div>
+</div>
+
+<p>支付宝：网站支付</p>
+<div>
+    <form th:action="@{/aliPay/payTwo}" method="post">
+        <div>
+            订单号:<input name="out_trade_no" id="tradeNo" />
+        </div>
+        <div>
+            商品名称:<input name="subject"  value="笔记本电脑"/>
+        </div>
+        <div>
+            金额:<input name="total_amount" value="99.99"/>元
+        </div>
+        <input type="submit" value="提交订单"/>
+    </form>
+
+</div>
+<p>--------------------------------------------------------------------</p>
+<p>银联支付：条码支付</p>
+<div>
+    <label>消费金额</label><input id="txnAmt" value="50"/>
+    <label>银联付款码</label><input id="qrNo"  onkeydown="UnionPay()"/>
+        <div>
+            支付状态：<label id="noticeA" style="color: red"></label>
+        </div>
+
+</div>
+
+
+</div>
+<p>--------------------------------------------------------------------</p>
+<p>银联支付：二维码生成</p>
+<div>
+    <label>消费金额</label><input id="txnAmt1" value="40"/>
+    <button onclick="UnionPayThree()">申请</button>
+    <div>
+        支付状态：<label id="noticeB" style="color: red"></label>
+    </div>
+    <div id="img"></div>
+</div>
+
+
+<p>银联支付：网站支付</p>
+<div>
+    <form th:action="@{/union/pay}" method="post">
+        <div>
+            订单号:<input name="orderId" id="tradeNoa" />
+        </div>
+        <div>
+            商品名称:<input name="goodsName"  value="书本"/>
+        </div>
+        <div>
+            金额:<input name="txnAmt" value="100"/>元
+        </div>
+        <input type="submit" value="提交订单"/>
+    </form>
+
+</div>
+
+<script th:src="@{/js/jquery-3.4.1.min.js}"></script>
+<script th:src="@{/js/qrcode.min.js}"></script>
+<script>
+    $("#payCode").focus();
+    var TradeNo = "123321"+Math.ceil(Math.random()*1000*1000);
+    $("#tradeNo").val(TradeNo);
+    $("#tradeNoa").val(TradeNo+3);
+
+    function pay() {
+        var payCode = $("#payCode").val();
+        var price = $("#price").val();
+        if(event.keyCode === 13){
+            if(payCode==null||payCode===""){
+                return $("#notice").text("(付款码不能为空)");
+            }
+            if(payCode==null||payCode===""){
+                return $("#notice").text("(金额不能为空)");
+            }
+            $.post({
+                url : "/tiapay/aliPay/pay",
+                data : {out_trade_no:TradeNo+1,auth_code:payCode,total_amount:price},
+                success : function(res) {
+                    $("#payCode").val("").focus();
+                    if(res===""){
+                        $("#notice").text("(支付成功 "+price+"元)")
+
+                    }else{
+                        TradeNo++;
+                        $("#notice").text("("+res+")")
+                    }
+                }
+            })
+        }
+    }
+
+
+    function UnionPay() {
+        var qrNo = $("#qrNo").val();
+        var txnAmt = $("#txnAmt").val();
+        if(event.keyCode === 13){
+            if(qrNo==null||qrNo===""){
+                return $("#noticeA").text("(付款码不能为空)");
+            }
+            if(txnAmt==null||txnAmt===""){
+                return $("#noticeA").text("(金额不能为空)");
+            }
+            $.post({
+                url : "/tiapay/union/payTwo",
+                data : {orderId:TradeNo+2,goodsName:"书本",qrNo:qrNo,txnAmt:txnAmt},
+                success : function(res) {
+                    $("#qrNo").val("").focus();
+                    if(res==="00"){
+                        $("#noticeA").text("(支付成功 "+txnAmt+"元)")
+
+                    }else{
+                        TradeNo++;
+                        $("#noticeA").text("("+res+")")
+                    }
+                }
+            })
+        }
+    }
+
+    var qrcode = new QRCode(document.getElementById("img"), {
+        width : 200,
+        height : 200
+    });
+
+
+    function UnionPayThree() {
+        var txnAmt = $("#txnAmt1").val();
+            if(txnAmt==null||txnAmt===""){
+                return $("#noticeB").text("(金额不能为空)");
+            }else{
+                $.post({
+                    url : "/tiapay/union/payThree",
+                    data : {orderId:TradeNo+3,goodsName:"空调",txnAmt:txnAmt},
+                    success : function(res) {
+                        $("#txnAmt1").focus();
+                        if(res.substring(0,2)==="00"){
+                            qrcode.makeCode(res.substring(2));
+                            $("#noticeB").text("(生成成功)")
+
+                        }else{
+                            TradeNo++;
+                            $("#noticeB").text("("+res+")")
+                        }
+                    }
+                })
+            }
+    }
+
+
+</script>
+</body>
+</html>

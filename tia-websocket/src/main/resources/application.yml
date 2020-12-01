@@ -1,0 +1,18 @@
+
+server:
+  port: 8081
+  servlet:
+    context-path: /weChat
+spring:
+  mail:
+    host: smtp.qq.com
+    username: 413130097@qq.com
+    password: vsinonxgcdazbiba
+    default-encoding: UTF-8
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+      mail.smtp.ssl.enable: true
+      mail.display.sendmail: spring-boot-demo
+
